@@ -178,6 +178,7 @@ ifeq ($(PODVM_DISTRO),rhel)
 else
 	docker buildx build -t $(PODVM_BUILDER_IMAGE) -f podvm/$(BUILDER_DOCKERFILE) \
 	--build-arg GO_VERSION=$(GO_VERSION) \
+	--build-arg ORAS_VERSION=$(ORAS_VERSION) \
 	--build-arg PROTOC_VERSION=$(PROTOC_VERSION) \
 	--build-arg RUST_VERSION=$(RUST_VERSION) \
 	--build-arg YQ_VERSION=$(YQ_VERSION) \

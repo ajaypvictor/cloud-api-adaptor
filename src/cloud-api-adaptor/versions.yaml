@@ -21,9 +21,10 @@ cloudimg:
 tools:
   bats: 1.10.0
   golang: 1.21.9
-  rust: 1.72.0
-  protoc: 3.15.0
+  oras: 1.1.0
   packer: v1.9.4
+  protoc: 3.15.0
+  rust: 1.72.0
 # Referenced Git repositories
 git:
   guest-components:
