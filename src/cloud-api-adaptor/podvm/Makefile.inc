@@ -35,6 +35,11 @@ SEALED_SECRET ?= yes
 AGENT_POLICY ?= yes
 AGENT_POLICY_PATH := $(FILES_DIR)/etc/kata-opa
 DEFAULT_AGENT_POLICY_FILE ?= allow-all.rego
+ifeq ($(AGENT_POLICY),yes)
+    AGENT_COMPONENT_NAME := agent-opa
+else
+    AGENT_COMPONENT_NAME := agent
+endif
 
 
 FORCE_TARGET := $(if $(FORCE),force,)
@@ -130,9 +135,12 @@ $(PROCESS_USER_DATA): always
 	cd "$(ROOT_DIR)" && ARCH=$(DEB_ARCH) $(MAKE) process-user-data
 	install -D --compare "$(ROOT_DIR)/process-user-data" "$@"
 
-$(KATA_AGENT): $(FORCE_TARGET) | $(STATIC_LIBSECCOMP)
-	cd "$(KATA_AGENT_SRC)" && $(RUST_FLAGS) $(MAKE) BUILD_TYPE=$(KATA_AGENT_BUILD_TYPE) SEALED_SECRET=${SEALED_SECRET} AGENT_POLICY=${AGENT_POLICY} LIBSECCOMP_LINK_TYPE=static LIBSECCOMP_LIB_PATH=$(dir $(STATIC_LIBSECCOMP))
-	install -D --compare "$(KATA_AGENT_SRC)/target/$(RUST_TARGET)/$(KATA_AGENT_BUILD_TYPE)/$(@F)" "$@"
+$(KATA_AGENT): $(FORCE_TARGET)
+	# TODO - do we still want to support building your own kata-agent here? If so we need to resolve the yq version mismatch
+	# Note: the kata gchr registry only tags the latest main, we want to fix this in kata so we can pin the agent version
+	oras pull ghcr.io/kata-containers/cached-artefacts/$(AGENT_COMPONENT_NAME):latest-main-$(ARCH)
+	tar xvJpf kata-static-$(AGENT_COMPONENT_NAME).tar.xz
+	install -D --compare "./usr/bin/kata-agent" "$@"
 
 $(STATIC_LIBSECCOMP): $(KATA_CONTAINERS_SRC)
 	$(RUST_FLAGS) $(STATIC_LIBSECCOMP_BUILDER) $(STATIC_LIBSECCOMP_DIR)/kata-libseccomp $(STATIC_LIBSECCOMP_DIR)/kata-gperf
@@ -168,6 +176,7 @@ $(GUEST_COMPONENTS_SRC):
 	$(call git_clone_repo_ref,$(GUEST_COMPONENTS_REPO),$(GUEST_COMPONENTS_SRC),$(GUEST_COMPONENTS_VERSION))
 
 $(ATTESTATION_AGENT): $(FORCE_TARGET) | $(GUEST_COMPONENTS_SRC)
+	# TODO - use oras to get guest-components caches
 	cd "$(GUEST_COMPONENTS_SRC)/attestation-agent" && CC= ARCH=$(ARCH) $(MAKE) KBC="$(AA_KBC)" ttrpc=true LIBC="$(LIBC)"
 	mkdir -p "$(@D)"
 	install --compare "$(GUEST_COMPONENTS_SRC)/target/$(RUST_TARGET)/release/attestation-agent" "$@"
@@ -182,6 +191,7 @@ $(API_SERVER_REST): $(FORCE_TARGET) | $(GUEST_COMPONENTS_SRC)
 	mkdir -p "$(@D)"
 	install --compare "$(GUEST_COMPONENTS_SRC)/target/$(RUST_TARGET)/release/api-server-rest" "$@"
 
+# TODO - remove OPA build as it is packaged with agent cache now?
 # OPA binaries are not available for s390x. Hence build from source
 $(OPA_SRC):
 	$(call git_clone_repo_ref,$(OPA_REPO),$(OPA_SRC),$(OPA_VERSION))
@@ -204,7 +214,7 @@ clean_sources:
 	[ -d "$(PAUSE_SRC)" ] && cd "$(PAUSE_SRC)" && rm -rf *
 	[ -d "$(UMOCI_SRC)" ] && cd "$(UMOCI_SRC)" && git clean -xfd -e umoci
 	[ -d "$(KATA_CONTAINERS_SRC)" ] && cd "$(KATA_CONTAINERS_SRC)" && git clean -xfd
-	[ -d "$(OPA_SRC)" ] && cd "$(OPA_SRC)" && git clean -xfd 
+	[ -d "$(OPA_SRC)" ] && cd "$(OPA_SRC)" && git clean -xfd
 
 .PHONY: force always
 always force:
