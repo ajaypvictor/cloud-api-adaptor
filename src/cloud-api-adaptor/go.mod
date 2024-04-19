@@ -197,3 +197,5 @@ replace github.com/prometheus/client_golang => github.com/prometheus/client_gola
 replace github.com/confidential-containers/cloud-api-adaptor/src/cloud-providers => ../cloud-providers
 
 replace github.com/confidential-containers/cloud-api-adaptor/src/peerpod-ctrl => ../peerpod-ctrl
+
+replace github.com/kata-containers/kata-containers/src/runtime => github.com/ajaypvictor/kata-containers/src/runtime v0.0.0-20240416105951-df6ec203edd5
