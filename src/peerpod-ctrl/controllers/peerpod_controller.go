@@ -56,6 +56,8 @@ const (
 func (r *PeerPodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	pp := confidentialcontainersorgv1alpha1.PeerPod{}
+	fmt.Println("testing inside Reconcile")
+	logger.Info("Reconcile from here")
 
 	// cloud provider was not set, try to fetch cloud provider and its configs dynamically from ConfigMap or Secret
 	// make sure the matching RBAC rules are set
@@ -130,9 +132,11 @@ func (r *PeerPodReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *PeerPodReconciler) cloudConfigsGetter() error {
+	fmt.Println("Inside cloudConfigsGetter")
 	peerpodscm := corev1.ConfigMap{}
 	peerpodssecret := corev1.Secret{}
 	ns := os.Getenv("PEERPODS_NAMESPACE")
+	fmt.Println("PEERPODS_NAMESPACE: ", ns)
 	if ns == "" {
 		return fmt.Errorf("PEERPODS_NAMESPACE is not set")
 	}
@@ -141,6 +145,7 @@ func (r *PeerPodReconciler) cloudConfigsGetter() error {
 	if cmErr = r.Client.Get(context.TODO(), types.NamespacedName{Name: ppConfigMap, Namespace: ns}, &peerpodscm); cmErr == nil {
 		// set all configs as env vars to make sure all the required vars for auth are set
 		for k, v := range peerpodscm.Data {
+			fmt.Println("peerpodscm: ", k, string(v))
 			os.Setenv(k, v)
 		}
 	}
@@ -148,6 +153,7 @@ func (r *PeerPodReconciler) cloudConfigsGetter() error {
 	var secretErr error
 	if secretErr = r.Client.Get(context.TODO(), types.NamespacedName{Name: ppSecret, Namespace: ns}, &peerpodssecret); secretErr == nil {
 		for k, v := range peerpodssecret.Data {
+			fmt.Println("peerpodssecret: ", k, string(v))
 			os.Setenv(k, string(v))
 		}
 	}
