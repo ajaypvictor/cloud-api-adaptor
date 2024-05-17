@@ -195,11 +195,17 @@ func (s *cloudService) CreateVM(ctx context.Context, req *pb.CreateVMRequest) (r
 	// Get Pod VM cpu and memory from annotations
 	vcpus, memory := util.GetCPUAndMemoryFromAnnotation(req.Annotations)
 
+	osType, imageType := util.GetImageAndOSTypeFromAnnotation(req.Annotations)
+
+	fmt.Println("osType: ", osType, "imageType: ", imageType)
+
 	// Pod VM spec
 	vmSpec := provider.InstanceTypeSpec{
 		InstanceType: instanceType,
 		VCPUs:        vcpus,
 		Memory:       memory,
+		OSType:       osType,
+		ImageType:    imageType,
 	}
 
 	// TODO: server name is also generated in each cloud provider, and possibly inconsistent

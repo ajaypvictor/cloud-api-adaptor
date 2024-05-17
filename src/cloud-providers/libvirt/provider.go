@@ -77,7 +77,23 @@ func (p *libvirtProvider) CreateInstance(ctx context.Context, podName, sandboxID
 			return nil, err
 		}
 	}
+
 	logger.Printf("LaunchSecurityType: %s", vm.launchSecurityType.String())
+
+	var newLibvirtConfig *Config
+
+	switch spec.ImageType {
+	case "pre-built":
+		newLibvirtConfig = LoadPreBuiltEnv()
+		p.libvirtClient.poolName = newLibvirtConfig.PoolName
+		p.libvirtClient.volName = newLibvirtConfig.VolName
+	case "operator-built":
+		newLibvirtConfig = LoadOperatorBuiltEnv()
+		p.libvirtClient.poolName = newLibvirtConfig.PoolName
+		p.libvirtClient.volName = newLibvirtConfig.VolName
+	}
+
+	logger.Printf("p.libvirtClient: %#v", p.libvirtClient)
 
 	result, err := CreateDomain(ctx, p.libvirtClient, vm)
 	if err != nil {

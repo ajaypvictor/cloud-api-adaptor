@@ -57,3 +57,25 @@ func (_ *Manager) NewProvider() (provider.Provider, error) {
 func (_ *Manager) GetConfig() (config *Config) {
 	return &libvirtcfg
 }
+
+func LoadPreBuiltEnv() (config *Config) {
+	var newLibvirtConfig Config
+	provider.DefaultToEnv(&newLibvirtConfig.URI, "LIBVIRT_URI", defaultURI)
+	provider.DefaultToEnv(&newLibvirtConfig.PoolName, "pre-built-LIBVIRT_POOL", defaultPoolName)
+	provider.DefaultToEnv(&newLibvirtConfig.NetworkName, "LIBVIRT_NET", defaultNetworkName)
+	provider.DefaultToEnv(&newLibvirtConfig.VolName, "pre-built-LIBVIRT_VOL_NAME", defaultVolName)
+	provider.DefaultToEnv(&newLibvirtConfig.LaunchSecurity, "LIBVIRT_LAUNCH_SECURITY", defaultLaunchSecurity)
+	provider.DefaultToEnv(&newLibvirtConfig.Firmware, "LIBVIRT_FIRMWARE", defaultFirmware)
+	return &newLibvirtConfig
+}
+
+func LoadOperatorBuiltEnv() (config *Config) {
+	var newLibvirtConfig Config
+	provider.DefaultToEnv(&newLibvirtConfig.URI, "LIBVIRT_URI", defaultURI)
+	provider.DefaultToEnv(&newLibvirtConfig.PoolName, "operator-built-LIBVIRT_POOL", defaultPoolName)
+	provider.DefaultToEnv(&newLibvirtConfig.NetworkName, "LIBVIRT_NET", defaultNetworkName)
+	provider.DefaultToEnv(&newLibvirtConfig.VolName, "operator-built-LIBVIRT_VOL_NAME", defaultVolName)
+	provider.DefaultToEnv(&newLibvirtConfig.LaunchSecurity, "LIBVIRT_LAUNCH_SECURITY", defaultLaunchSecurity)
+	provider.DefaultToEnv(&newLibvirtConfig.Firmware, "LIBVIRT_FIRMWARE", defaultFirmware)
+	return &newLibvirtConfig
+}

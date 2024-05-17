@@ -35,6 +35,13 @@ func GetInstanceTypeFromAnnotation(annotations map[string]string) string {
 	return annotations[hypannotations.MachineType]
 }
 
+// Method to get image and os type from annotation
+func GetImageAndOSTypeFromAnnotation(annotations map[string]string) (string, string) {
+	response := strings.Split(annotations[hypannotations.MachineType], "_")
+	imageType, osType := response[0], response[1]
+	return osType, imageType
+}
+
 // Method to get vCPU and memory from annotations
 func GetCPUAndMemoryFromAnnotation(annotations map[string]string) (int64, int64) {
 
