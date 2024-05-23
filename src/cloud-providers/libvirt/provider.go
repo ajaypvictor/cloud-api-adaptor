@@ -79,6 +79,12 @@ func (p *libvirtProvider) CreateInstance(ctx context.Context, podName, sandboxID
 	}
 	logger.Printf("LaunchSecurityType: %s", vm.launchSecurityType.String())
 
+	LoadPreBuiltEnv()
+
+	newLibvirtConfig := GetPreBuiltConfig()
+
+	logger.Printf("libvirt config: %#v", newLibvirtConfig)
+
 	result, err := CreateDomain(ctx, p.libvirtClient, vm)
 	if err != nil {
 		logger.Printf("failed to create an instance : %v", err)
