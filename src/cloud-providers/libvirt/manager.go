@@ -58,15 +58,12 @@ func (_ *Manager) GetConfig() (config *Config) {
 	return &libvirtcfg
 }
 
-func LoadPreBuiltEnv() {
+func LoadPreBuiltEnv() (config *Config) {
 	provider.DefaultToEnv(&libvirtcfg.URI, "LIBVIRT_URI", defaultURI)
 	provider.DefaultToEnv(&libvirtcfg.PoolName, "pre-built.LIBVIRT_POOL", defaultPoolName)
 	provider.DefaultToEnv(&libvirtcfg.NetworkName, "LIBVIRT_NET", defaultNetworkName)
 	provider.DefaultToEnv(&libvirtcfg.VolName, "pre-built.LIBVIRT_VOL_NAME", defaultVolName)
 	provider.DefaultToEnv(&libvirtcfg.LaunchSecurity, "LIBVIRT_LAUNCH_SECURITY", defaultLaunchSecurity)
 	provider.DefaultToEnv(&libvirtcfg.Firmware, "LIBVIRT_FIRMWARE", defaultFirmware)
-}
-
-func GetPreBuiltConfig() (config *Config) {
 	return &libvirtcfg
 }
