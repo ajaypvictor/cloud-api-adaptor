@@ -18,7 +18,11 @@ import (
 
 var logger = log.New(log.Writer(), "[adaptor/cloud/libvirt] ", log.LstdFlags|log.Lmsgprefix)
 
-const maxInstanceNameLen = 63
+const (
+	maxInstanceNameLen = 63
+	preBuiltImage      = "pre-built"
+	operatorBuiltImage = "operator-built"
+)
 
 type libvirtProvider struct {
 	libvirtClient *libvirtClient
@@ -78,6 +82,13 @@ func (p *libvirtProvider) CreateInstance(ctx context.Context, podName, sandboxID
 		}
 	}
 	logger.Printf("LaunchSecurityType: %s", vm.launchSecurityType.String())
+
+	switch spec.InstanceType {
+	case preBuiltImage:
+		logger.Printf("Choosing the pre-built podvm image.")
+	case operatorBuiltImage:
+		logger.Printf("Choosing the operator-built podvm image.")
+	}
 
 	result, err := CreateDomain(ctx, p.libvirtClient, vm)
 	if err != nil {
