@@ -13,7 +13,7 @@
 # dhcp IP is assigned to the VM
 echo -n | sudo tee /etc/machine-id
 #Lock password for the ssh user (peerpod) to disallow logins
-sudo passwd -l peerpod
+# sudo passwd -l peerpod
 
 # install required packages
 if [ "$CLOUD_PROVIDER" == "vsphere" ]
@@ -44,13 +44,22 @@ if [[ "$CLOUD_PROVIDER" == "azure" || "$CLOUD_PROVIDER" == "generic" ]] && [[ "$
     sudo apt-get install -y --no-install-recommends libtss2-tctildr0 libtdx-attest
 fi
 
-# Setup oneshot systemd service for AWS and Azure to enable NAT rules
-if [ "$CLOUD_PROVIDER" == "azure" ] || [ "$CLOUD_PROVIDER" == "aws" ] || [ "$CLOUD_PROVIDER" == "generic" ]
+# Install iptables on all providers except docker/vsphere.
+if [ "$CLOUD_PROVIDER" != "vsphere" ] && [ "$CLOUD_PROVIDER" != "docker" ]
 then
     if [ ! -x "$(command -v iptables)" ]; then
         case $PODVM_DISTRO in
         rhel)
-            dnf -q install iptables -y
+            # Subscribe incase of s390x for installing iptables.
+            if [[ -n "${ACTIVATION_KEY}" && -n "${ORG_ID}" ]] && [[ "${ARCH}" == "s390x" ]]; then \
+                subscription-manager register --org=${ORG_ID} --activationkey=${ACTIVATION_KEY}; \
+                dnf install iptables -y; \
+                subscription-manager unregister
+            else
+                dnf -q install iptables -y;
+            fi
+
+            
             ;;
         ubuntu)
             apt-get -qq update && apt-get -qq install iptables -y
@@ -61,8 +70,11 @@ then
         esac
     fi
 
-    # Enable oneshot serivce
-    systemctl enable setup-nat-for-imds
+    # Enable oneshot systemd service for AWS and Azure to enable NAT rules
+    if [ "$CLOUD_PROVIDER" == "azure" ] || [ "$CLOUD_PROVIDER" == "aws" ] || [ "$CLOUD_PROVIDER" == "generic" ]
+    then
+        systemctl enable setup-nat-for-imds
+    fi
 fi
 
 if [ -e /etc/certificates/tls.crt ] && [ -e /etc/certificates/tls.key ] && [ -e /etc/certificates/ca.crt ]; then
